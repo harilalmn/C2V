@@ -977,9 +977,6 @@ function initCanvas() {
 
     helpPanel = new HelpPanel();
 
-    // Help button
-    document.getElementById('btn-help').addEventListener('click', () => helpPanel.toggle());
-
     // Register overlays
     renderer.addOverlay((ctx) => selectionMgr.renderOverlay(ctx));
     renderer.addOverlay((ctx) => toolMgr.renderOverlay(ctx));
@@ -1063,7 +1060,106 @@ function handleExport(format) {
 // ============================================================================
 // UI Setup
 // ============================================================================
+function toggleProjectBrowser() {
+    const panel = document.getElementById('project-panel');
+    panel.classList.toggle('collapsed');
+    const visible = !panel.classList.contains('collapsed');
+    const check = document.querySelector('#menu-project-browser .menu-check');
+    if (check) check.style.display = visible ? '' : 'none';
+}
+
+function toggleProperties() {
+    propertiesPanel.toggle();
+    document.getElementById('properties-splitter').style.display = propertiesPanel.visible ? '' : 'none';
+    const check = document.querySelector('#menu-properties .menu-check');
+    if (check) check.style.display = propertiesPanel.visible ? '' : 'none';
+}
+
+function toggleLayers() {
+    layerMgr.toggle();
+    const check = document.querySelector('#menu-layers .menu-check');
+    if (check) check.style.display = layerMgr.visible ? '' : 'none';
+}
+
+function toggleMinimap() {
+    minimap.toggle();
+    const check = document.querySelector('#menu-minimap .menu-check');
+    if (check) check.style.display = minimap.visible ? '' : 'none';
+}
+
+function toggleSnap() {
+    snapEngine.enabled = !snapEngine.enabled;
+    const check = document.querySelector('#menu-snap .menu-check');
+    if (check) check.style.display = snapEngine.enabled ? '' : 'none';
+}
+
+function closeAllMenus() {
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('open'));
+}
+
+function initMenubar() {
+    let menuOpen = false;
+
+    document.querySelectorAll('.menu-item').forEach(item => {
+        const label = item.querySelector('.menu-label');
+        label.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const wasOpen = item.classList.contains('open');
+            closeAllMenus();
+            if (!wasOpen) {
+                item.classList.add('open');
+                menuOpen = true;
+            } else {
+                menuOpen = false;
+            }
+        });
+        // Hover to switch menus when one is already open
+        item.addEventListener('mouseenter', () => {
+            if (menuOpen) {
+                closeAllMenus();
+                item.classList.add('open');
+            }
+        });
+    });
+
+    // Close on outside click
+    document.addEventListener('click', () => { closeAllMenus(); menuOpen = false; });
+
+    // Close menu when an action is clicked
+    document.querySelectorAll('.menu-action').forEach(action => {
+        action.addEventListener('click', () => { closeAllMenus(); menuOpen = false; });
+    });
+
+    // File menu
+    document.getElementById('menu-open-folder').addEventListener('click', openFolder);
+    document.getElementById('menu-new-file').addEventListener('click', () => {
+        const name = prompt('New file name:', 'utils.js');
+        if (name) createNewFileInFolder(name);
+    });
+    document.getElementById('menu-save').addEventListener('click', saveAll);
+    document.getElementById('menu-export-svg').addEventListener('click', () => handleExport('svg'));
+    document.getElementById('menu-export-png').addEventListener('click', () => handleExport('png'));
+    document.getElementById('menu-export-pdf').addEventListener('click', () => handleExport('pdf'));
+    document.getElementById('menu-export-dxf').addEventListener('click', () => handleExport('dxf'));
+
+    // Edit menu
+    document.getElementById('menu-find').addEventListener('click', () => { if (editor) editor.execCommand('findPersistent'); });
+    document.getElementById('menu-replace').addEventListener('click', () => { if (editor) editor.execCommand('replace'); });
+    document.getElementById('menu-format').addEventListener('click', formatCode);
+
+    // View menu
+    document.getElementById('menu-project-browser').addEventListener('click', toggleProjectBrowser);
+    document.getElementById('menu-properties').addEventListener('click', toggleProperties);
+    document.getElementById('menu-layers').addEventListener('click', toggleLayers);
+    document.getElementById('menu-minimap').addEventListener('click', toggleMinimap);
+    document.getElementById('menu-snap').addEventListener('click', toggleSnap);
+    document.getElementById('menu-help').addEventListener('click', () => helpPanel.toggle());
+}
+
 function initUI() {
+    // Menubar
+    initMenubar();
+
     // Toolbar
     document.getElementById('btn-run').addEventListener('click', runCode);
     document.getElementById('btn-fit').addEventListener('click', () => { renderer.zoomToFit(); if (minimap) minimap.render(); });
@@ -1076,35 +1172,15 @@ function initUI() {
         if (layerMgr) layerMgr.render();
     });
 
-    // File management
-    document.getElementById('btn-open-folder').addEventListener('click', openFolder);
+    // File tree & tab buttons
     document.getElementById('btn-open-folder-tree').addEventListener('click', openFolder);
-    document.getElementById('btn-new-file').addEventListener('click', () => {
-        const name = prompt('New file name:', 'utils.js');
-        if (name) createNewFileInFolder(name);
-    });
     document.getElementById('btn-add-tab').addEventListener('click', () => {
         const name = prompt('New file name:', 'utils.js');
         if (name) createNewFileInFolder(name);
     });
-    document.getElementById('btn-save').addEventListener('click', saveAll);
 
-    // Toggle project browser
-    document.getElementById('btn-toggle-tree').addEventListener('click', () => {
-        document.getElementById('project-panel').classList.toggle('collapsed');
-    });
-
-    // Export dropdown
-    const exportBtn = document.getElementById('btn-export');
-    const exportMenu = document.getElementById('export-menu');
-    exportBtn.addEventListener('click', (e) => { e.stopPropagation(); exportMenu.classList.toggle('open'); });
-    document.addEventListener('click', () => exportMenu.classList.remove('open'));
-    exportMenu.querySelectorAll('.dropdown-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation(); exportMenu.classList.remove('open');
-            handleExport(item.dataset.format);
-        });
-    });
+    // Toggle project browser from panel header
+    document.getElementById('btn-toggle-tree').addEventListener('click', toggleProjectBrowser);
 
     // Drawing tools
     const toolBtns = document.querySelectorAll('.tool-btn');
@@ -1119,38 +1195,18 @@ function initUI() {
         });
     });
 
-    // Toggle buttons
-    const snapBtn = document.getElementById('btn-snap');
-    snapBtn.addEventListener('click', () => {
-        snapEngine.enabled = !snapEngine.enabled;
-        snapBtn.classList.toggle('btn-toggle-on', snapEngine.enabled);
-    });
-
-    document.getElementById('btn-minimap').addEventListener('click', () => {
-        minimap.toggle();
-        document.getElementById('btn-minimap').classList.toggle('btn-toggle-on', minimap.visible);
-    });
-
-    document.getElementById('btn-props').addEventListener('click', () => {
-        propertiesPanel.toggle();
-        document.getElementById('btn-props').classList.toggle('btn-toggle-on', propertiesPanel.visible);
-        document.getElementById('properties-splitter').style.display = propertiesPanel.visible ? '' : 'none';
-    });
-
+    // Close props/layers panel buttons
     document.getElementById('btn-close-props').addEventListener('click', () => {
         propertiesPanel.visible = false;
-        document.getElementById('btn-props').classList.remove('btn-toggle-on');
         document.getElementById('properties-splitter').style.display = 'none';
-    });
-
-    document.getElementById('btn-layers').addEventListener('click', () => {
-        layerMgr.toggle();
-        document.getElementById('btn-layers').classList.toggle('btn-toggle-on', layerMgr.visible);
+        const check = document.querySelector('#menu-properties .menu-check');
+        if (check) check.style.display = 'none';
     });
 
     document.getElementById('btn-close-layers').addEventListener('click', () => {
         layerMgr.visible = false;
-        document.getElementById('btn-layers').classList.remove('btn-toggle-on');
+        const check = document.querySelector('#menu-layers .menu-check');
+        if (check) check.style.display = 'none';
     });
 
     // Keyboard shortcuts
@@ -1170,35 +1226,15 @@ function initUI() {
             if (openTabs.size > 1) closeTab(activeFile);
         }
 
-        // F1 - Help
-        if (e.key === 'F1') {
-            e.preventDefault();
-            helpPanel.toggle();
-        }
+        if (e.key === 'F1') { e.preventDefault(); helpPanel.toggle(); }
+        if (e.key === 'F4') { e.preventDefault(); toggleProperties(); }
+        if (e.key === 'F9') { e.preventDefault(); toggleSnap(); }
 
-        // F4 - Properties
-        if (e.key === 'F4') {
-            e.preventDefault();
-            propertiesPanel.toggle();
-            document.getElementById('btn-props').classList.toggle('btn-toggle-on', propertiesPanel.visible);
-            document.getElementById('properties-splitter').style.display = propertiesPanel.visible ? '' : 'none';
-        }
-
-        // F9 - Snap toggle
-        if (e.key === 'F9') {
-            e.preventDefault();
-            snapEngine.enabled = !snapEngine.enabled;
-            snapBtn.classList.toggle('btn-toggle-on', snapEngine.enabled);
-        }
-
-        // Ctrl+Shift+M - Minimap
         if (e.ctrlKey && e.shiftKey && e.key === 'M') {
             e.preventDefault();
-            minimap.toggle();
-            document.getElementById('btn-minimap').classList.toggle('btn-toggle-on', minimap.visible);
+            toggleMinimap();
         }
 
-        // Ctrl+M - Measuring tape
         if (e.ctrlKey && !e.shiftKey && e.key === 'm') {
             e.preventDefault();
             toolMgr.setTool('measure');
@@ -1206,8 +1242,8 @@ function initUI() {
             document.getElementById('active-tool').textContent = 'Measure';
         }
 
-        // Escape - close help or back to pointer
         if (e.key === 'Escape') {
+            closeAllMenus();
             if (helpPanel && helpPanel.visible) {
                 helpPanel.hide();
             } else {
@@ -1217,7 +1253,6 @@ function initUI() {
             }
         }
 
-        // Delete - delete selected shapes
         if (e.key === 'Delete' && selectionMgr.hasSelection) {
             if (!editor.hasFocus()) {
                 selectionMgr.deleteSelected();
@@ -1225,7 +1260,6 @@ function initUI() {
             }
         }
 
-        // Drawing tool shortcuts (only when editor not focused)
         if (!editor.hasFocus() && !e.ctrlKey && !e.altKey) {
             const toolKeys = { 'v': 'pointer', 'p': 'point', 'l': 'line', 'c': 'circle', 'r': 'rectangle', 'm': 'measure' };
             const tool = toolKeys[e.key.toLowerCase()];
@@ -1237,7 +1271,6 @@ function initUI() {
             }
         }
 
-        // Shift key for ortho constraint
         if (e.key === 'Shift') toolMgr.setOrthoConstrain(true);
     });
 

@@ -30,12 +30,115 @@ html, body {
     overflow: hidden;
 }
 
+/* ============================================================================
+   Menubar
+   ============================================================================ */
+#menubar {
+    display: flex;
+    align-items: center;
+    height: 30px;
+    padding: 0 8px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    user-select: none;
+    gap: 0;
+}
+
+#menubar .app-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: -0.5px;
+    margin-right: 10px;
+    padding: 0 4px;
+}
+
+.menu-item {
+    position: relative;
+}
+
+.menu-label {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.menu-label:hover,
+.menu-item.open .menu-label {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    margin-top: 2px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    min-width: 220px;
+    z-index: 600;
+    padding: 4px 0;
+}
+
+.menu-item.open .menu-dropdown {
+    display: block;
+}
+
+.menu-action {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 5px 14px;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-size: 12px;
+    text-align: left;
+    cursor: pointer;
+    gap: 8px;
+}
+
+.menu-action:hover {
+    background: var(--bg-hover);
+}
+
+.menu-action-label {
+    flex: 1;
+}
+
+.menu-shortcut {
+    color: var(--text-dim);
+    font-size: 11px;
+    margin-left: auto;
+}
+
+.menu-check {
+    color: var(--accent);
+    font-size: 12px;
+    width: 16px;
+    text-align: center;
+}
+
+.menu-sep {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 8px;
+}
+
 /* Toolbar */
 #toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 42px;
+    height: 36px;
     padding: 0 12px;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
@@ -46,27 +149,6 @@ html, body {
     display: flex;
     align-items: center;
     gap: 6px;
-}
-
-.app-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: -0.5px;
-}
-
-.app-subtitle {
-    font-size: 11px;
-    font-weight: 500;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.toolbar-center {
-    display: flex;
-    gap: 6px;
-    align-items: center;
 }
 
 .toolbar-right {
@@ -217,7 +299,7 @@ html, body {
 /* Main Content */
 #main-content {
     display: flex;
-    height: calc(100vh - 42px);
+    height: calc(100vh - 30px - 36px);
 }
 
 /* ============================================================================

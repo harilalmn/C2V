@@ -33,17 +33,49 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.18/addon/lint/lint.min.js"></script>
 </head>
 <body>
+    <!-- Menubar -->
+    <div id="menubar">
+        <span class="app-title">Code2Viz</span>
+        <div class="menu-item" data-menu="file-menu">
+            <span class="menu-label">File</span>
+            <div class="menu-dropdown" id="file-menu">
+                <button class="menu-action" id="menu-open-folder"><span class="menu-action-label">Open Folder</span><span class="menu-shortcut">Ctrl+O</span></button>
+                <button class="menu-action" id="menu-new-file"><span class="menu-action-label">New File</span><span class="menu-shortcut">Ctrl+N</span></button>
+                <button class="menu-action" id="menu-save"><span class="menu-action-label">Save All</span><span class="menu-shortcut">Ctrl+S</span></button>
+                <div class="menu-sep"></div>
+                <button class="menu-action" id="menu-export-svg"><span class="menu-action-label">Export SVG</span></button>
+                <button class="menu-action" id="menu-export-png"><span class="menu-action-label">Export PNG</span></button>
+                <button class="menu-action" id="menu-export-pdf"><span class="menu-action-label">Export PDF</span></button>
+                <button class="menu-action" id="menu-export-dxf"><span class="menu-action-label">Export DXF</span></button>
+            </div>
+        </div>
+        <div class="menu-item" data-menu="edit-menu">
+            <span class="menu-label">Edit</span>
+            <div class="menu-dropdown" id="edit-menu">
+                <button class="menu-action" id="menu-find"><span class="menu-action-label">Find</span><span class="menu-shortcut">Ctrl+F</span></button>
+                <button class="menu-action" id="menu-replace"><span class="menu-action-label">Replace</span><span class="menu-shortcut">Ctrl+H</span></button>
+                <div class="menu-sep"></div>
+                <button class="menu-action" id="menu-format"><span class="menu-action-label">Format Code</span><span class="menu-shortcut">Ctrl+Shift+F</span></button>
+            </div>
+        </div>
+        <div class="menu-item" data-menu="view-menu">
+            <span class="menu-label">View</span>
+            <div class="menu-dropdown" id="view-menu">
+                <button class="menu-action menu-toggle" id="menu-project-browser"><span class="menu-action-label">Project Browser</span><span class="menu-check">&#10003;</span></button>
+                <button class="menu-action menu-toggle" id="menu-properties"><span class="menu-action-label">Properties</span><span class="menu-shortcut">F4</span><span class="menu-check" style="display:none">&#10003;</span></button>
+                <button class="menu-action menu-toggle" id="menu-layers"><span class="menu-action-label">Layers</span><span class="menu-check" style="display:none">&#10003;</span></button>
+                <button class="menu-action menu-toggle" id="menu-minimap"><span class="menu-action-label">Minimap</span><span class="menu-shortcut">Ctrl+Shift+M</span><span class="menu-check" style="display:none">&#10003;</span></button>
+                <div class="menu-sep"></div>
+                <button class="menu-action menu-toggle" id="menu-snap"><span class="menu-action-label">Snap to Grid</span><span class="menu-shortcut">F9</span><span class="menu-check">&#10003;</span></button>
+                <div class="menu-sep"></div>
+                <button class="menu-action" id="menu-help"><span class="menu-action-label">Help</span><span class="menu-shortcut">F1</span></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toolbar -->
     <div id="toolbar">
         <div class="toolbar-left">
-            <span class="app-title">Code2Viz</span>
-            <span class="app-subtitle">Web</span>
-            <div class="toolbar-sep"></div>
-            <button id="btn-open-folder" class="btn btn-sm" title="Open Project Folder (Ctrl+O)">Open Folder</button>
-            <button id="btn-new-file" class="btn btn-sm" title="New File (Ctrl+N)">New File</button>
-            <button id="btn-save" class="btn btn-sm" title="Save All (Ctrl+S)">Save</button>
-        </div>
-        <div class="toolbar-center">
             <button id="btn-run" class="btn btn-run" title="Run Code (F5 / Ctrl+Enter)">
                 <span class="btn-icon">&#9654;</span> Run
             </button>
@@ -75,26 +107,6 @@
                     <span class="btn-icon">&#8636;</span>
                 </button>
             </div>
-            <div class="toolbar-sep"></div>
-            <div class="dropdown">
-                <button id="btn-export" class="btn" title="Export">
-                    <span class="btn-icon">&#8615;</span> Export
-                </button>
-                <div class="dropdown-menu" id="export-menu">
-                    <button class="dropdown-item" data-format="svg">SVG - Vector Graphics</button>
-                    <button class="dropdown-item" data-format="png">PNG - Image</button>
-                    <button class="dropdown-item" data-format="pdf">PDF - Document</button>
-                    <button class="dropdown-item" data-format="dxf">DXF - AutoCAD</button>
-                </div>
-            </div>
-            <div class="toolbar-sep"></div>
-            <!-- Toggle buttons -->
-            <button id="btn-snap" class="btn btn-toggle btn-toggle-on" title="Snap to Grid (F9)">Snap</button>
-            <button id="btn-minimap" class="btn btn-toggle" title="Toggle Minimap (Ctrl+Shift+M)">Map</button>
-            <button id="btn-props" class="btn btn-toggle" title="Properties Panel (F4)">Props</button>
-            <button id="btn-layers" class="btn btn-toggle" title="Layers Panel">Layers</button>
-            <div class="toolbar-sep"></div>
-            <button id="btn-help" class="btn btn-toggle" title="Help (F1)">? Help</button>
         </div>
         <div class="toolbar-right">
             <span id="active-tool" class="active-tool">Pointer</span>
