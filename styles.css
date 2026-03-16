@@ -598,6 +598,61 @@ html, body {
 .CodeMirror-foldgutter { width: 12px; }
 
 /* ============================================================================
+   Real-time Lint: red squiggly underlines
+   ============================================================================ */
+.CodeMirror-lint-mark-error {
+    background: none !important;
+    border-bottom: 2px wavy var(--accent-red) !important;
+}
+
+.CodeMirror-lint-mark-warning {
+    background: none !important;
+    border-bottom: 2px wavy var(--accent-yellow) !important;
+}
+
+/* Gutter markers */
+.CodeMirror-lint-marker-error {
+    color: var(--accent-red) !important;
+}
+
+.CodeMirror-lint-marker-warning {
+    color: var(--accent-yellow) !important;
+}
+
+/* Tooltip */
+.CodeMirror-lint-tooltip {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 6px !important;
+    color: var(--text-primary) !important;
+    font-family: 'Consolas', 'Courier New', monospace !important;
+    font-size: 12px !important;
+    padding: 6px 10px !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    max-width: 500px !important;
+}
+
+.CodeMirror-lint-message-error {
+    background: none !important;
+    padding-left: 0 !important;
+    color: var(--accent-red) !important;
+}
+
+.CodeMirror-lint-message-error::before {
+    content: "\26D4  ";
+}
+
+.CodeMirror-lint-message-warning {
+    background: none !important;
+    padding-left: 0 !important;
+    color: var(--accent-yellow) !important;
+}
+
+.CodeMirror-lint-message-warning::before {
+    content: "\26A0  ";
+}
+
+/* ============================================================================
    Error Line Highlighting
    ============================================================================ */
 .cm-error-line {

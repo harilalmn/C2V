@@ -41,6 +41,7 @@ const STORAGE_KEY = 'code2viz_project';
 
 // Error markers
 let _errorMarkers = [];
+let _lintTimer = null;
 
 // ============================================================================
 // Project Model
@@ -575,6 +576,94 @@ function formatCode() {
 }
 
 // ============================================================================
+// Real-time Linter
+// ============================================================================
+function lintJavaScript(code) {
+    const found = [];
+
+    // 1. Syntax errors via Function parse (does not execute)
+    try {
+        new Function(code);
+    } catch (err) {
+        let line = 0, col = 0;
+        // Try to extract line/col from the error
+        if (err instanceof SyntaxError) {
+            // Chrome / Edge: "<anonymous>:line:col"
+            const stackMatch = err.stack && err.stack.match(/<anonymous>:(\d+):(\d+)/);
+            if (stackMatch) {
+                line = Math.max(0, parseInt(stackMatch[1]) - 2); // Function wrapper offset
+                col = parseInt(stackMatch[2]);
+            } else {
+                // Firefox: "Function:line:col"  or just look for digits in message
+                const msgMatch = err.message.match(/line (\d+)/i);
+                if (msgMatch) line = Math.max(0, parseInt(msgMatch[1]) - 2);
+            }
+        }
+        const lines = code.split('\n');
+        line = Math.min(line, lines.length - 1);
+        const lineText = lines[line] || '';
+        found.push({
+            from: CodeMirror.Pos(line, col > 0 ? Math.min(col, lineText.length) : 0),
+            to: CodeMirror.Pos(line, lineText.length),
+            message: err.message,
+            severity: 'error',
+        });
+        return found; // syntax error makes further checks unreliable
+    }
+
+    // 2. Line-level heuristic checks
+    const lines = code.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmed = line.trimStart();
+
+        // Skip comments and empty lines
+        if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('/*') || trimmed.startsWith('*')) continue;
+
+        // Detect = in condition (likely meant ==)
+        const ifMatch = trimmed.match(/\b(if|while)\s*\(([^)]+)\)/);
+        if (ifMatch) {
+            const cond = ifMatch[2];
+            // Single = not preceded or followed by = or !
+            if (/(?<!=)=(?!=)/.test(cond) && !/[<>!]=/.test(cond)) {
+                const eqIdx = line.indexOf('=', line.indexOf(ifMatch[0]));
+                if (eqIdx >= 0) {
+                    found.push({
+                        from: CodeMirror.Pos(i, eqIdx),
+                        to: CodeMirror.Pos(i, eqIdx + 1),
+                        message: 'Assignment in condition — did you mean === or ==?',
+                        severity: 'warning',
+                    });
+                }
+            }
+        }
+
+        // Detect duplicate variable declarations in same scope (simple consecutive-line check)
+        const declMatch = trimmed.match(/^(?:let|const|var)\s+(\w+)/);
+        if (declMatch) {
+            const varName = declMatch[1];
+            // Scan above for same declaration
+            for (let j = 0; j < i; j++) {
+                const prevTrimmed = lines[j].trimStart();
+                const prevDecl = prevTrimmed.match(/^(?:let|const)\s+(\w+)/);
+                if (prevDecl && prevDecl[1] === varName) {
+                    const colStart = line.indexOf(varName);
+                    found.push({
+                        from: CodeMirror.Pos(i, colStart),
+                        to: CodeMirror.Pos(i, colStart + varName.length),
+                        message: `'${varName}' is already declared (line ${j + 1})`,
+                        severity: 'warning',
+                    });
+                    break;
+                }
+            }
+        }
+    }
+
+    return found;
+}
+
+// ============================================================================
 // CodeMirror Editor
 // ============================================================================
 function initEditor() {
@@ -587,7 +676,8 @@ function initEditor() {
         autoCloseBrackets: true,
         styleActiveLine: true,
         foldGutter: true,
-        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+        gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
+        lint: { getAnnotations: lintJavaScript, delay: 400 },
         indentUnit: 4,
         tabSize: 4,
         indentWithTabs: false,
